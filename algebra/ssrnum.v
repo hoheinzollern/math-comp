@@ -3,7 +3,7 @@
 From HB Require Import structures.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq choice.
 From mathcomp Require Import ssrAC div fintype path bigop order finset fingroup.
-From mathcomp Require Import ssralg poly.
+From mathcomp Require Import ssralg poly orderedzmod.
 
 (******************************************************************************)
 (*                            Number structures                               *)
@@ -212,32 +212,13 @@ Fact ring_display : Order.disp_t. Proof. exact. Qed.
 
 Module Num.
 
-HB.mixin Record Nmodule_isPOrdered R of GRing.Nmodule R
-   & Order.isPOrder ring_display R := {
-  lerD2l : forall x : R, {mono +%R x : y z / y <= z}
-}.
-
-(* TODO provide the positive cone definition of porderZmodType *)
-(* HB.factory Record ZmodulePositiveCone_isPOrdered of GRing.Zmodule R *)
-(*    & Order.isPOrder ring_display R := { *)
-(*   (* TODO: is posnum the right name? *) *)
-(*   posnum : {pred R}; *)
-(*   posnum0 :  *)
-
-#[short(type="porderNmodType")]
-HB.structure Definition POrderedNmodule :=
-  { R of Order.isPOrder ring_display R & GRing.Nmodule R & Nmodule_isPOrdered R}.
-#[short(type="porderZmodType")]
-HB.structure Definition POrderedZmodule :=
-  { R of Order.isPOrder ring_display R & GRing.Zmodule R & Nmodule_isPOrdered R}.
-
 Section ERealOrder.
 Context {R : porderNmodType}.
 Implicit Types x y : \bar R.
 
 Definition le_ereal x1 x2 :=
   match x1, x2 with
-  | -oo, r%:E | r%:E, +oo => r \is Num.real
+  | -oo, r%:E | r%:E, +oo => r \is real
   | r1%:E, r2%:E => r1 <= r2
   | -oo, _    | _, +oo => true
   | +oo, _    | _, -oo => false
@@ -245,7 +226,7 @@ Definition le_ereal x1 x2 :=
 
 Definition lt_ereal x1 x2 :=
   match x1, x2 with
-  | -oo, r%:E | r%:E, +oo => r \is Num.real
+  | -oo, r%:E | r%:E, +oo => r \is real
   | r1%:E, r2%:E => r1 < r2
   | -oo, -oo  | +oo, +oo => false
   | +oo, _    | _  , -oo => false

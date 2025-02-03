@@ -315,6 +315,33 @@ Proof. by rewrite -[LHS]subr_ge0 opprB add0r subr_ge0. Qed.  (* FIXME: rewrite p
 Lemma subr_lt0  x y : (y - x < 0) = (y < x).
 Proof. by rewrite -[LHS]subr_gt0 opprB add0r subr_gt0. Qed.  (* FIXME: rewrite pattern *)
 
+
+(* Comparison and opposite. *)
+
+Lemma lerN2 : {mono -%R : x y /~ x <= y :> R}.
+Proof. by move=> x y /=; rewrite -subr_ge0 opprK addrC subr_ge0. Qed.
+Hint Resolve lerN2 : core.
+Lemma ltrN2 : {mono -%R : x y /~ x < y :> R}.
+Proof. by move=> x y /=; rewrite leW_nmono. Qed.
+Hint Resolve ltrN2 : core.
+Definition lterN2 := (lerN2, ltrN2).
+
+Lemma lerNr x y : (x <= - y) = (y <= - x).
+Proof. by rewrite (monoRL opprK lerN2). Qed.
+
+Lemma ltrNr x y : (x < - y) = (y < - x).
+Proof. by rewrite (monoRL opprK (leW_nmono _)). Qed.
+
+Definition lterNr := (lerNr, ltrNr).
+
+Lemma lerNl x y : (- x <= y) = (- y <= x).
+Proof. by rewrite (monoLR opprK lerN2). Qed.
+
+Lemma ltrNl x y : (- x < y) = (- y < x).
+Proof. by rewrite (monoLR opprK (leW_nmono _)). Qed.
+
+Definition lterNl := (lerNl, ltrNl).
+
 Definition subr_lte0 := (subr_le0, subr_lt0).
 Definition subr_gte0 := (subr_ge0, subr_gt0).
 Definition subr_cp0 := (subr_lte0, subr_gte0).
@@ -353,6 +380,53 @@ Proof. by rewrite -comparabler0 subr_comparable0. Qed.
 
 (* Ordered ring properties. *)
 
+Lemma oppr_gt0 x : (0 < - x) = (x < 0). Proof. by rewrite ltrNr oppr0. Qed.
+
+Definition oppr_gte0 := (oppr_ge0, oppr_gt0).
+
+Lemma oppr_le0 x : (- x <= 0) = (0 <= x). Proof. by rewrite lerNl oppr0. Qed.
+
+Lemma oppr_lt0 x : (- x < 0) = (0 < x). Proof. by rewrite ltrNl oppr0. Qed.
+
+Lemma gtrN x : 0 < x -> - x < x.
+Proof. by move=> n0; rewrite -subr_lt0 -opprD oppr_lt0 addr_gt0. Qed.
+
+Definition oppr_lte0 := (oppr_le0, oppr_lt0).
+Definition oppr_cp0 := (oppr_gte0, oppr_lte0).
+Definition lterNE := (oppr_cp0, lterN2).
+
+Lemma ge0_cp x : 0 <= x -> (- x <= 0) * (- x <= x).
+Proof. by move=> hx; rewrite oppr_cp0 hx (@le_trans _ _ 0) ?oppr_cp0. Qed.
+
+Lemma gt0_cp x : 0 < x ->
+  (0 <= x) * (- x <= 0) * (- x <= x) * (- x < 0) * (- x < x).
+Proof.
+move=> hx; move: (ltW hx) => hx'; rewrite !ge0_cp hx' //.
+by rewrite oppr_cp0 hx // (@lt_trans _ _ 0) ?oppr_cp0.
+Qed.
+
+Lemma le0_cp x : x <= 0 -> (0 <= - x) * (x <= - x).
+Proof. by move=> hx; rewrite oppr_cp0 hx (@le_trans _ _ 0) ?oppr_cp0. Qed.
+
+Lemma lt0_cp x :
+  x < 0 -> (x <= 0) * (0 <= - x) * (x <= - x) * (0 < - x) * (x < - x).
+Proof.
+move=> hx; move: (ltW hx) => hx'; rewrite !le0_cp // hx'.
+by rewrite oppr_cp0 hx // (@lt_trans _ _ 0) ?oppr_cp0.
+Qed.
+
+(* Properties of the real subset. *)
+
+Lemma ger0_real x : 0 <= x -> x \is real.
+Proof. by rewrite realE => ->. Qed.
+
+Lemma ler0_real x : x <= 0 -> x \is real.
+Proof. by rewrite realE orbC => ->. Qed.
+
+Lemma gtr0_real x : 0 < x -> x \is real. Proof. by move=> /ltW/ger0_real. Qed.
+
+Lemma ltr0_real x : x < 0 -> x \is real. Proof. by move=> /ltW/ler0_real. Qed.
+
 End porderZmodTypeTheory.
 
 HB.mixin Record POrderedZmodule_hasTransComp R of GRing.Nmodule R
@@ -386,6 +460,37 @@ Qed.
 #[export]
 HB.instance Definition _ := GRing.isAddClosed.Build R Rreal_pred
   real_addr_closed.
+
+
+Lemma ler_leVge x y : x <= 0 -> y <= 0 -> (x <= y) || (y <= x).
+Proof. by rewrite -!oppr_ge0 => /(ger_leVge _) /[apply]; rewrite !lerN2. Qed.
+
+Lemma real_leVge x y : x \is real -> y \is real -> (x <= y) || (y <= x).
+Proof. by rewrite -comparabler0 -comparable0r => /comparabler_trans P/P. Qed.
+
+Lemma real_comparable x y : x \is real -> y \is real -> x >=< y.
+Proof. exact: real_leVge. Qed.
+
+Lemma realB : {in real &, forall x y, x - y \is real}.
+Proof. exact: rpredB. Qed.
+
+Lemma realN : {mono (@GRing.opp R) : x / x \is real}.
+Proof. exact: rpredN. Qed.
+
+Lemma realBC x y : (x - y \is real) = (y - x \is real).
+Proof. exact: rpredBC. Qed.
+
+Lemma realD : {in real &, forall x y, x + y \is real}.
+Proof. exact: rpredD. Qed.
+
+
+Lemma real0 : 0%R \is @real R. Proof. exact: rpred0. Qed.
+
+(* TODO: should work for semiring *)
+(* Lemma real1 : 1%R \is @real R. Proof. exact: rpred1. Qed. *)
+(* Lemma realn n : n%:R \is @real R. Proof. exact: rpred_nat. Qed. *)
+(* #[local] Hint Resolve real0 real1 : core. *)
+
 
 End ComparableZmoduleTheory.
 
@@ -686,13 +791,13 @@ move: x y => [x||] [y||] //; rewrite /Order.comparable !lee_fin -!realE.
 - by rewrite /lee/= => _ ->.
 Qed.
 
-Lemma real_ltry r : r%:E < +oo = (r \is Num.real). Proof. by []. Qed.
-Lemma real_ltNyr r : -oo < r%:E = (r \is Num.real). Proof. by []. Qed.
+Lemma real_ltry r : r%:E < +oo = (r \is real). Proof. by []. Qed.
+Lemma real_ltNyr r : -oo < r%:E = (r \is real). Proof. by []. Qed.
 
-Lemma real_leey x : (x <= +oo) = (fine x \is Num.real).
+Lemma real_leey x : (x <= +oo) = (fine x \is real).
 Proof. by case: x => //=; rewrite real0. Qed.
 
-Lemma real_leNye x : (-oo <= x) = (fine x \is Num.real).
+Lemma real_leNye x : (-oo <= x) = (fine x \is real).
 Proof. by case: x => //=; rewrite real0. Qed.
 
 Lemma minye : left_id (+oo : \bar R) Order.min.
@@ -700,12 +805,12 @@ Proof. by case. Qed.
 
 Lemma real_miney (x : \bar R) : (0 >=< x)%O -> Order.min x +oo = x.
 Proof.
-by case: x => [x |//|//] rx; rewrite minEle real_leey [_ \in Num.real]rx.
+by case: x => [x |//|//] rx; rewrite minEle real_leey [_ \in real]rx.
 Qed.
 
 Lemma real_minNye (x : \bar R) : (0 >=< x)%O -> Order.min -oo%E x = -oo%E.
 Proof.
-by case: x => [x |//|//] rx; rewrite minEle real_leNye [_ \in Num.real]rx.
+by case: x => [x |//|//] rx; rewrite minEle real_leNye [_ \in real]rx.
 Qed.
 
 Lemma mineNy : right_zero (-oo : \bar R) Order.min.
@@ -716,12 +821,12 @@ Proof. by case. Qed.
 
 Lemma real_maxey (x : \bar R) : (0 >=< x)%O -> Order.max x +oo = +oo.
 Proof.
-by case: x => [x |//|//] rx; rewrite maxEle real_leey [_ \in Num.real]rx.
+by case: x => [x |//|//] rx; rewrite maxEle real_leey [_ \in real]rx.
 Qed.
 
 Lemma real_maxNye (x : \bar R) : (0 >=< x)%O -> Order.max -oo%E x = x.
 Proof.
-by case: x => [x |//|//] rx; rewrite maxEle real_leNye [_ \in Num.real]rx.
+by case: x => [x |//|//] rx; rewrite maxEle real_leNye [_ \in real]rx.
 Qed.
 
 Lemma maxeNy : right_id (-oo : \bar R) Order.max.
@@ -729,15 +834,14 @@ Proof. by case=> [x |//|//]; rewrite maxElt. Qed.
 
 Lemma gee0P x : 0 <= x <-> x = +oo \/ exists2 r, (r >= 0)%R & x = r%:E.
 Proof.
-split=> [|[->|[r r0 ->//]]]; last by rewrite real_leey/=.
+split=> [|[->|[r r0 ->//]]]; last by rewrite real_leey/= real0.
 by case: x => [r r0 | _ |//]; [right; exists r|left].
 Qed.
 
 Lemma fine0 : fine 0 = 0%R :> R. Proof. by []. Qed.
-Lemma fine1 : fine 1 = 1%R :> R. Proof. by []. Qed.
+(* Lemma fine1 : fine 1 = 1%R :> R. Proof. by []. Qed. *)
 
-End ERealOrder_numDomainType.
-
-
+End ERealOrder_comparableType.
 
 
+End ereal_theory.

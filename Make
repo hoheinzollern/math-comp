@@ -11,6 +11,7 @@ algebra/mxalgebra.v
 algebra/mxpoly.v
 algebra/mxred.v
 algebra/numext.v
+algebra/orderedzmod.v
 algebra/polydiv.v
 algebra/poly.v
 algebra/polyXY.v
