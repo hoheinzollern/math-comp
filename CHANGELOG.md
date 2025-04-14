@@ -602,7 +602,7 @@ Alessandro Bruni, Cyril Cohen, Enrico Tassi, Erik Martin-Dorel, Kazuhiko Sakaguc
   + `subSemiRingType` -> `subNzSemiRingType`
   + `subComSemiRingType` -> `subComNzSemiRingType`
   + `subRingType` -> `subNzRingType`
-  + ``subComNzRingType` -> `subComNzRingType`
+  + `subComNzRingType` -> `subComNzRingType`
   ([#1306](https://github.com/math-comp/math-comp/pull/1306),
   by Quentin Vermande).
   + `char` -> `pchar`
@@ -763,7 +763,7 @@ Alessandro Bruni, Cyril Cohen, Enrico Tassi, Erik Martin-Dorel, Kazuhiko Sakaguc
   + `card_primeChar` -> `card_pprimeChar`
   + `primeChar_vectAxiom` -> `pprimeChar_vectAxiom`
   + `primeChar_dimf` -> `pprimeChar_dimf`
-  + `PrimePowerField` -> pPrimePowerField`
+  + `PrimePowerField` -> `pPrimePowerField`
   + `FinDomainSplittingFieldType` -> `FinDomainSplittingFieldType_pchar`
 
 - in `separable.v`
